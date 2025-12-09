@@ -1,0 +1,35 @@
+{
+  "expo": {
+    "name": "Mr.Bright",
+    "slug": "mrbright",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#000000"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "ai.mrbright.app",
+      "buildNumber": "1",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Allow Mr.Bright to access your camera to upload photos in chat.",
+        "NSPhotoLibraryUsageDescription": "Allow Mr.Bright to access your photos to share in chat.",
+        "NSMicrophoneUsageDescription": "Allow Mr.Bright to access your microphone for voice messages.",
+        "NSLocationWhenInUseUsageDescription": "Allow Mr.Bright to access your location for location sharing.",
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "10a39d9d-a6d8-4d09-985e-ca20e26ea2a9"
+      }
+    }
+  }
+}
