@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, StyleSheet, ActivityIndicator, Text, TouchableOpacity, BackHandler, Alert } from 'react-native';
+import { View, StyleSheet, ActivityIndicator, Text, TouchableOpacity, BackHandler, Alert, Platform } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { CHAT_URL } from '../config/api';
 import { useFocusEffect } from '@react-navigation/native';
@@ -27,25 +27,31 @@ export default function ChatScreen({ navigation }) {
   }, []);
 
   // Intercept React Navigation back action (header back button)
+  // Only for Android - iOS doesn't need this
   useEffect(() => {
+    // Skip this listener on iOS to avoid navigation issues
+    if (Platform.OS === 'ios') {
+      return;
+    }
+
     const unsubscribe = navigation.addListener('beforeRemove', (e) => {
       // Prevent default back behavior
       e.preventDefault();
-      
+
       console.log('🔙 Navigation back intercepted');
       console.log('  Can go back in WebView:', canGoBack);
       console.log('  Current URL:', currentUrl);
-      
+
       // If on login page or can't go back, allow exit
-      if (currentUrl.includes('/login') || 
-          currentUrl === CHAT_URL || 
+      if (currentUrl.includes('/login') ||
+          currentUrl === CHAT_URL ||
           currentUrl === CHAT_URL + '/' ||
           !canGoBack) {
         console.log('📱 Allowing exit to Signup');
         navigation.dispatch(e.data.action);
         return;
       }
-      
+
       // Otherwise, go back in WebView
       if (webViewRef.current && canGoBack) {
         console.log('⬅️ Going back in WebView (header button)');
@@ -59,28 +65,33 @@ export default function ChatScreen({ navigation }) {
   // Handle Android hardware back button
   useFocusEffect(
     React.useCallback(() => {
+      // Only Android has hardware back button
+      if (Platform.OS !== 'android') {
+        return;
+      }
+
       const onBackPress = () => {
         console.log('🔙 Hardware back pressed');
         console.log('  Can go back:', canGoBack);
         console.log('  Current URL:', currentUrl);
-        
+
         // If on login page or home page, exit to signup screen
-        if (currentUrl.includes('/login') || 
-            currentUrl === CHAT_URL || 
+        if (currentUrl.includes('/login') ||
+            currentUrl === CHAT_URL ||
             currentUrl === CHAT_URL + '/' ||
             !canGoBack) {
           console.log('📱 Exiting to signup screen');
           navigation.goBack();
           return true;
         }
-        
+
         // Otherwise navigate back in WebView
         if (webViewRef.current && canGoBack) {
           console.log('⬅️ Going back in WebView (hardware button)');
           webViewRef.current.goBack();
           return true;
         }
-        
+
         return false;
       };
 
@@ -206,17 +217,24 @@ export default function ChatScreen({ navigation }) {
         cacheEnabled={true}
         cacheMode="LOAD_DEFAULT"
         
-        // Android specific
+        // Platform specific
         mixedContentMode="always"
         androidHardwareAccelerationDisabled={false}
         androidLayerType="hardware"
+        
+        // iOS specific
+        allowsLinkPreview={true}
+        decelerationRate="normal"
         
         // Origin & Navigation
         originWhitelist={['*']}
         allowsBackForwardNavigationGestures={true}
         
-        // User Agent
-        userAgent="Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
+        // User Agent - iOS version
+        userAgent={Platform.OS === 'ios' 
+          ? "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1"
+          : "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
+        }
         
         // Rendering
         scalesPageToFit={true}
@@ -232,7 +250,8 @@ export default function ChatScreen({ navigation }) {
         // Inject JavaScript
         injectedJavaScript={`
           window.isNativeApp = true;
-          window.isAndroidApp = true;
+          window.isIOSApp = ${Platform.OS === 'ios'};
+          window.isAndroidApp = ${Platform.OS === 'android'};
           
           window.addEventListener('load', function() {
             console.log('✅ WebView page fully loaded');
